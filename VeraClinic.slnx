@@ -1,0 +1,23 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/VeraClinic.Domain/VeraClinic.Domain.csproj" />
+        <Project Path="src/VeraClinic.Application/VeraClinic.Application.csproj" />
+        <Project Path="src/VeraClinic.EntityFrameworkCore/VeraClinic.EntityFrameworkCore.csproj" />
+        <Project Path="src/VeraClinic.Domain.Shared/VeraClinic.Domain.Shared.csproj" />
+        <Project Path="src/VeraClinic.Application.Contracts/VeraClinic.Application.Contracts.csproj" />
+        <Project Path="src/VeraClinic.HttpApi/VeraClinic.HttpApi.csproj" />
+        <Project Path="src/VeraClinic.HttpApi.Client/VeraClinic.HttpApi.Client.csproj" />
+        <Project Path="src/VeraClinic.DbMigrator/VeraClinic.DbMigrator.csproj" />
+        <Project Path="src/VeraClinic.HttpApi.Host/VeraClinic.HttpApi.Host.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/VeraClinic.Application.Tests/VeraClinic.Application.Tests.csproj" />
+        <Project Path="test/VeraClinic.EntityFrameworkCore.Tests/VeraClinic.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/VeraClinic.TestBase/VeraClinic.TestBase.csproj" />
+        <Project Path="test/VeraClinic.Domain.Tests/VeraClinic.Domain.Tests.csproj" />
+        <Project Path="test/VeraClinic.HttpApi.Client.ConsoleTestApp/VeraClinic.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>

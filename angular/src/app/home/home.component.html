@@ -1,0 +1,194 @@
+<div class="container-fluid mt-4">
+  
+  <div class="row mb-4" *ngIf="hasLoggedIn">
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100 p-2 soft-blue-card">
+        <div class="card-body d-flex align-items-center text-center">
+          <div class="flex-grow-1">
+            <h6 class="text-uppercase small fw-bold text-secondary">Toplam Hasta</h6>
+            <h2 class="mb-0 fw-bold" style="color: #2c3e50;">{{ totalPatients }}</h2>
+          </div>
+          <i class="fa fa-users fa-2x opacity-10"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100 p-2 soft-red-card">
+        <div class="card-body d-flex align-items-center text-center">
+          <div class="flex-grow-1">
+            <h6 class="text-uppercase small fw-bold text-secondary">Kritik (Acil)</h6>
+            <h2 class="mb-0 fw-bold" style="color: #c53030;">{{ criticalCount }}</h2>
+          </div>
+          <i class="fa fa-ambulance fa-2x opacity-10"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100 p-2 soft-yellow-card">
+        <div class="card-body d-flex align-items-center text-center">
+          <div class="flex-grow-1">
+            <h6 class="text-uppercase small fw-bold text-secondary">Gözlem</h6>
+            <h2 class="mb-0 fw-bold" style="color: #d69e2e;">{{ observationCount }}</h2>
+          </div>
+          <i class="fa fa-eye fa-2x opacity-10"></i>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card shadow-sm border-0 h-100 p-2 soft-green-card">
+        <div class="card-body d-flex align-items-center text-center">
+          <div class="flex-grow-1">
+            <h6 class="text-uppercase small fw-bold text-secondary">Stabil</h6>
+            <h2 class="mb-0 fw-bold" style="color: #2f855a;">{{ stableCount }}</h2>
+          </div>
+          <i class="fa fa-check-circle fa-2x opacity-10"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0" *ngIf="hasLoggedIn">
+    <div class="card-header d-flex justify-content-between align-items-center py-3 custom-header">
+      <h3 class="card-title mb-0 text-white">
+        <i class="fa fa-heartbeat me-2 text-danger"></i>VeraClinic Canlı Takip
+      </h3>
+      <div class="d-flex gap-2">
+        <button class="btn btn-success btn-sm px-3 shadow-sm" (click)="openModal()">
+          <i class="fa fa-plus me-1"></i> Yeni Hasta Kaydı
+        </button>
+        <button class="btn btn-outline-light btn-sm" (click)="getPatients()">
+          <i class="fa fa-refresh"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 text-center align-middle">
+          <thead class="bg-light text-secondary">
+            <tr>
+              <th class="text-start ps-4">Hasta Ad Soyad</th>
+              <th>TC No</th>
+              <th>Oksijen</th>
+              <th>Ateş</th>
+              <th>Bekleme</th> 
+              <th>Durum</th>
+              <th class="pe-4 text-end">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let patient of patients" [class.critical-row]="patient.currentTriageStatus === 3">
+              <td class="text-start ps-4 fw-bold text-dark">{{ patient.name }} {{ patient.surname }}</td>
+              <td class="text-muted small">{{ patient.identityNumber }}</td>
+              <td>
+                <span [class.text-danger]="patient.oxygenSaturation < 90" class="fw-bold">
+                  %{{ patient.oxygenSaturation }}
+                </span>
+              </td>
+              <td class="text-muted">{{ patient.bodyTemperature }}°C</td>
+              
+              <td>
+                <span [ngClass]="getWaitColorClass(patient.creationTime)">
+                  <i class="fa fa-clock-o me-1"></i>
+                  {{ getWaitingTime(patient.creationTime) }} dk
+                </span>
+              </td>
+
+              <td>
+                <span class="badge rounded-pill px-3 py-2" [ngClass]="getTriageBadgeClass(patient.currentTriageStatus)">
+                  {{ getTriageText(patient.currentTriageStatus) }}
+                </span>
+              </td>
+              <td class="pe-4 text-end">
+                <div class="d-flex justify-content-end gap-2">
+                  <button class="btn btn-soft-info btn-sm" (click)="viewPatient(patient)" title="Gözlem">
+                    <i class="fa fa-eye"></i>
+                  </button>
+                  <button class="btn btn-soft-primary btn-sm" (click)="downloadReport(patient)" title="PDF Rapor">
+                    <i class="fa fa-file-pdf-o"></i>
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm border-0" (click)="dischargePatient(patient.id)" title="Taburcu">
+                    <i class="fa fa-sign-out"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="patients.length === 0">
+              <td colspan="7" class="py-5 text-muted">Aktif hasta kaydı bulunmuyor.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <abp-modal [(visible)]="isViewModalOpen">
+    <ng-template #abpHeader>
+      <h4 class="m-0 text-dark fw-bold"><i class="fa fa-file-text-o me-2 text-info"></i>Hasta Gözlem Kaydı</h4>
+    </ng-template>
+    <ng-template #abpBody>
+      <div class="p-2" *ngIf="selectedPatient">
+        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
+          <div class="flex-shrink-0 bg-white p-3 rounded-circle shadow-sm">
+            <i class="fa fa-user fa-2x text-info"></i>
+          </div>
+          <div class="ms-3">
+            <h4 class="mb-0 fw-bold">{{ selectedPatient.name }} {{ selectedPatient.surname }}</h4>
+            <span class="text-muted small">TC: {{ selectedPatient.identityNumber }}</span>
+          </div>
+        </div>
+        
+        <div class="bg-white border p-3 rounded-3 mb-3">
+          <label class="small fw-bold text-uppercase text-muted mb-2 d-block">Şikayet ve Bulgular</label>
+          <p class="mb-0 fs-6" style="color: #444;">{{ selectedPatient.complaint || 'Şikayet belirtilmemiş.' }}</p>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="p-3 border rounded-3 text-center bg-light">
+              <span class="d-block small text-muted text-uppercase mb-1">Oksijen</span>
+              <span class="h4 mb-0 fw-bold text-primary">%{{ selectedPatient.oxygenSaturation }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-3 border rounded-3 text-center bg-light">
+              <span class="d-block small text-muted text-uppercase mb-1">Vücut Isısı</span>
+              <span class="h4 mb-0 fw-bold text-success">{{ selectedPatient.bodyTemperature }}°C</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+    <ng-template #abpFooter>
+      <button class="btn btn-light px-4" (click)="isViewModalOpen = false">Kapat</button>
+    </ng-template>
+  </abp-modal>
+
+  <abp-modal [(visible)]="isModalOpen">
+    <ng-template #abpHeader><h4 class="fw-bold m-0">Yeni Hasta Kaydı</h4></ng-template>
+    <ng-template #abpBody>
+      <form [formGroup]="patientForm">
+        <div class="row g-3">
+          <div class="col-6"><label class="small fw-bold text-muted">Ad</label><input class="form-control" formControlName="name"></div>
+          <div class="col-6"><label class="small fw-bold text-muted">Soyad</label><input class="form-control" formControlName="surname"></div>
+          <div class="col-12"><label class="small fw-bold text-muted">TC Kimlik</label><input class="form-control" formControlName="identityNumber"></div>
+          <div class="col-6"><label class="small fw-bold text-muted">Oksijen (%)</label><input type="number" class="form-control" formControlName="oxygenSaturation"></div>
+          <div class="col-6"><label class="small fw-bold text-muted">Ateş (°C)</label><input type="number" step="0.1" class="form-control" formControlName="bodyTemperature"></div>
+          <div class="col-12"><label class="small fw-bold text-muted">Şikayet</label><textarea class="form-control" rows="3" formControlName="complaint"></textarea></div>
+        </div>
+      </form>
+    </ng-template>
+    <ng-template #abpFooter>
+      <button class="btn btn-light" (click)="isModalOpen = false">İptal</button>
+      <button class="btn btn-primary px-4" (click)="save()" [disabled]="patientForm.invalid">Kaydet</button>
+    </ng-template>
+  </abp-modal>
+
+  <div class="row mt-5" *ngIf="!hasLoggedIn">
+    <div class="col-md-6 offset-md-3 text-center p-5 card shadow-sm border-0 rounded-4">
+      <i class="fa fa-plus-square fa-4x text-danger mb-3"></i>
+      <h2 class="fw-bold">VeraClinic Triyaj Sistemi</h2>
+      <button (click)="login()" class="btn btn-primary btn-lg mt-3 px-5 shadow-sm">Giriş Yap</button>
+    </div>
+  </div>
+</div>

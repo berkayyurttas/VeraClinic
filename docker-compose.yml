@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  veraclinic-db:
+    image: postgres:17-alpine
+    container_name: veraclinic_db
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=VeraClinic
+    ports:
+      - "5488:5432"
+    volumes:
+      - ./.vdata/db:/var/lib/postgresql/data
+
+  veraclinic-redis:
+    image: redis:alpine
+    container_name: veraclinic_redis
+    ports:
+      - "6399:6379"

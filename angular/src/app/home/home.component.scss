@@ -1,0 +1,108 @@
+/* 1. GENEL KART VE HEADER YAPISI */
+.card {
+  border-radius: 12px !important;
+  border: none !important;
+  transition: transform 0.2s ease-in-out;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+
+  &:hover {
+    transform: translateY(-3px);
+  }
+}
+
+/* Siyah yerine Premium Gece Mavisi Header */
+.custom-header, .card-header.bg-dark {
+  background-color: #2c3e50 !important;
+  border-bottom: 2px solid #34495e !important;
+  color: white !important;
+}
+
+/* 2. SOFT (PASTEL) İSTATİSTİK KARTLARI */
+.soft-blue-card { 
+  background-color: #f0f7ff !important; 
+  border-left: 5px solid #007bff !important; 
+  color: #0056b3;
+}
+
+.soft-red-card { 
+  background-color: #fff5f5 !important; 
+  border-left: 5px solid #e53e3e !important; 
+  color: #c53030;
+}
+
+.soft-yellow-card { 
+  background-color: #fffaf0 !important; 
+  border-left: 5px solid #ecc94b !important; 
+  color: #d69e2e;
+}
+
+.soft-green-card { 
+  background-color: #f0fff4 !important; 
+  border-left: 5px solid #38a169 !important; 
+  color: #2f855a;
+}
+
+/* 3. BUTONLAR VE İKONLAR */
+.btn-soft-info {
+  background-color: #e1f5fe !important;
+  color: #0288d1 !important;
+  border: none !important;
+  font-weight: 600;
+  
+  &:hover { 
+    background-color: #b3e5fc !important; 
+    color: #01579b !important;
+  }
+}
+
+/* İkonların çok parlamaması için şeffaflık ayarı */
+.opacity-10, .opacity-50 {
+  opacity: 0.12 !important;
+}
+
+/* 4. TABLO DÜZENLEMELERİ */
+.table {
+  thead th {
+    background-color: #f8f9fa;
+    color: #6c757d;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #eee;
+  }
+
+  tbody td {
+    vertical-align: middle;
+    color: #444;
+  }
+}
+/* Kritik hastaların satırını hafifçe vurgular */
+tr.bg-soft-red {
+  background-color: rgba(229, 62, 62, 0.05); /* Çok hafif kırmızı arka plan */
+}
+
+/* Tablodaki kritik satırın yanına kırmızı bir şerit çeker */
+.critical-row {
+  border-left: 4px solid #e53e3e !important;
+}
+/* Bekleme süresi yanıp sönme efekti */
+.blink {
+  animation: blinker 1.5s linear infinite;
+}
+
+@keyframes blinker {
+  50% { opacity: 0.2; }
+}
+
+.btn-soft-primary {
+  background-color: #e8eaf6;
+  color: #3f51b5;
+  border: none;
+  &:hover { background-color: #c5cae9; }
+}
+
+/* Kritik satır vurgusu */
+.critical-row {
+  border-left: 5px solid #c53030 !important;
+  background-color: rgba(197, 48, 48, 0.02);
+}
