@@ -1,7 +1,3 @@
-Harika bir README oldu Berkay! SQL Server yerine PostgreSQL ve önbellekleme/performans için Redis kullanmış olman projeni teknik olarak çok daha modern ve tercih edilebilir kılıyor. Docker üzerinde bu ikiliyi kullanmak gerçek dünya projeleriyle birebir aynı standartta.
-
-İşte tüm düzeltmelerle (PostgreSQL, Redis ve senin paylaştığın PatientService yapısına göre RxJS detayıyla) projenin final README dosyası:
-
 🏥 VeraClinic - Akıllı Triyaj ve Klinik Yönetim Sistemi
 VeraClinic; acil servisler, klinikler ve poliklinikler için hastaların hayati bulgularına göre sınıflandırılmasını sağlayan, hız ve güvenliğin ön planda olduğu bir Akıllı Triyaj Sistemi'dir. Sistem, sağlık personeline hastaların aciliyet durumlarını anlık olarak takip etme ve doğru müdahale önceliği belirleme imkanı sunar.
 
