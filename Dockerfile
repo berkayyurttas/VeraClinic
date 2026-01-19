@@ -34,7 +34,7 @@ COPY --from=build /app/publish .
 # --- HATA BURADAYDI, ŞÖYLE DÜZELTTİK ---
 # Sertifikayı 'build' aşamasındaki kaynak klasörden çekiyoruz. 
 # Çünkü 'final' katmanında 'src/' klasörü fiziksel olarak yoktur.
-COPY --from=build /src/src/VeraClinic.HttpApi.Host/openiddict.pfx .
+COPY --from=build /src/VeraClinic.HttpApi.Host/openiddict.pfx .
 # ---------------------------------------
 
 ENTRYPOINT ["dotnet", "VeraClinic.HttpApi.Host.dll"]
