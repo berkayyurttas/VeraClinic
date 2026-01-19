@@ -1,67 +1,62 @@
-﻿# VeraClinic
+🏥 VeraClinic - Akıllı Triyaj ve Klinik Yönetim Sistemi
+VeraClinic; acil servisler, klinikler ve poliklinikler için hastaların hayati bulgularına göre sınıflandırılmasını sağlayan, hız ve güvenliğin ön planda olduğu bir Akıllı Triyaj Sistemi'dir. Sistem, sağlık personeline hastaların aciliyet durumlarını anlık olarak takip etme ve doğru müdahale önceliği belirleme imkanı sunar.
 
-## About this solution
+🚨 Triyaj Sınıflandırma Sistemi
+VeraClinic, uluslararası standartlara uygun olarak hastaları üç ana kategoride sınıflandırır:
 
-This is a layered startup solution based on [Domain Driven Design (DDD)](https://abp.io/docs/latest/framework/architecture/domain-driven-design) practises. All the fundamental ABP modules are already installed. Check the [Application Startup Template](https://abp.io/docs/latest/solution-templates/layered-web-application) documentation for more info.
+🔴 Kırmızı Kod (Acil): Hayati tehlikesi bulunan, saniyeler içinde müdahale edilmesi gereken kritik hastalar. Sistemde en yüksek öncelikle en üst sırada listelenir.
 
-### Pre-requirements
+🟡 Sarı Kod (Gözlem): Hayati tehlikesi anlık olmayan ancak durumunun kötüleşme riski bulunan, kısa süre içinde müdahale edilmesi gereken hastalar.
 
-* [.NET10.0+ SDK](https://dotnet.microsoft.com/download/dotnet)
-* [Node v18 or 20](https://nodejs.org/en)
+🟢 Yeşil Kod (Ayaktan): Genel sağlık durumu stabil olan, poliklinik hizmeti alabilecek veya bekleme süresi hayati risk oluşturmayan hastalar.
 
-### Configurations
+🚀 Teknolojik Altyapı ve Mimari
+Proje, kurumsal seviyede performans ve sürdürülebilirlik için en güncel yazılım yığınını (stack) kullanır:
 
-The solution comes with a default configuration that works out of the box. However, you may consider to change the following configuration before running your solution:
+⚙️ Backend (Sunucu Tarafı)
+.NET 10 (Preview): Microsoft'un en güncel framework'ü ile maksimum performans ve modern C# özellikleri.
 
-* Check the `ConnectionStrings` in `appsettings.json` files under the `VeraClinic.HttpApi.Host` and `VeraClinic.DbMigrator` projects and change it if you need.
+OpenIddict: OAuth2 ve OpenID Connect protokolleri ile yüksek güvenlikli kimlik doğrulama.
 
-### Before running the application
+Entity Framework Core: Veritabanı yönetimi ve ORM işlemleri için güçlü altyapı.
 
-* Run `abp install-libs` command on your solution folder to install client-side package dependencies. This step is automatically done when you create a new solution, if you didn't especially disabled it. However, you should run it yourself if you have first cloned this solution from your source control, or added a new client-side package dependency to your solution.
-* Run `VeraClinic.DbMigrator` to create the initial database. This step is also automatically done when you create a new solution, if you didn't especially disabled it. This should be done in the first run. It is also needed if a new database migration is added to the solution later.
+ABP Framework (Opsiyonel/Katmanlı Mimari): Modüler ve genişletilebilir Domain-Driven Design (DDD) prensipleri.
 
-#### Generating a Signing Certificate
+🎨 Frontend (İstemci Tarafı)
+Angular: Dinamik, hızlı ve reaktif kullanıcı arayüzü yönetimi.
 
-In the production environment, you need to use a production signing certificate. ABP Framework sets up signing and encryption certificates in your application and expects an `openiddict.pfx` file in your application.
+RxJS: Triyaj listelerindeki anlık veri değişimlerini yönetmek için asenkron akışlar.
 
-To generate a signing certificate, you can use the following command:
+Bootstrap & SCSS: Mobil uyumlu ve şık bir sağlık personeli paneli.
 
-```bash
-dotnet dev-certs https -v -ep openiddict.pfx -p 9951a518-2f7a-483b-ab0f-ad772e0c8279
-```
+📦 DevOps ve Otomasyon
+Docker: API, Angular ve Veritabanı bileşenlerinin konteynerize edilmesi.
 
-> `9951a518-2f7a-483b-ab0f-ad772e0c8279` is the password of the certificate, you can change it to any password you want.
+GitHub Actions: Tam otomatik CI/CD süreci. Kod her gönderildiğinde; derleme, imaj oluşturma ve Docker Hub'a dağıtım işlemleri saniyeler içinde gerçekleşir.
 
-It is recommended to use **two** RSA certificates, distinct from the certificate(s) used for HTTPS: one for encryption, one for signing.
+Multi-Stage Build: Üretim ortamı için optimize edilmiş, düşük boyutlu ve güvenli Docker imajları.
 
-For more information, please refer to: [OpenIddict Certificate Configuration](https://documentation.openiddict.com/configuration/encryption-and-signing-credentials.html#registering-a-certificate-recommended-for-production-ready-scenarios)
+🏗️ Proje Katmanları (N-Layered)
+Domain Layer: İş kuralları ve triyaj algoritmalarının kalbi.
 
-> Also, see the [Configuring OpenIddict](https://abp.io/docs/latest/Deployment/Configuring-OpenIddict#production-environment) documentation for more information.
+Application Layer: DTO'lar, servisler ve iş mantığının API ile buluştuğu nokta.
 
-### Solution structure
+Infrastructure Layer: EF Core, veritabanı sağlayıcıları ve harici entegrasyonlar.
 
-This is a layered monolith application that consists of the following applications:
+API Host Layer: Uygulamanın dünyaya açılan kapısı.
 
-* `VeraClinic.DbMigrator`: A console application which applies the migrations and also seeds the initial data. It is useful on development as well as on production environment.
-* `VeraClinic.HttpApi.Host`: ASP.NET Core API application that is used to expose the APIs to the clients.
-* `angular`: Angular application.
+🛠️ Kurulum Rehberi
+Docker ile Hızlı Başlat
+İmajları doğrudan Docker Hub'dan çekerek sistemi ayağa kaldırabilirsiniz:
 
+Bash
+docker pull berkayyurttas/veraclinic-api:latest
+docker pull berkayyurttas/veraclinic-angular:latest
+Yerel Geliştirme Ortamı
+Depoyu klonlayın: git clone https://github.com/berkayyurttas/VeraClinic.git
 
-## Deploying the application
+SQL Server bağlantınızı yapılandırın.
 
-Deploying an ABP application follows the same process as deploying any .NET or ASP.NET Core application. However, there are important considerations to keep in mind. For detailed guidance, refer to ABP's [deployment documentation](https://abp.io/docs/latest/Deployment/Index).
+Migrationları uygulayın: dotnet ef database update
 
-### Additional resources
-
-
-#### Internal Resources
-
-You can find detailed setup and configuration guide(s) for your solution below:
-
-* [Angular](./angular/README.md)
-
-#### External Resources
-You can see the following resources to learn more about your solution and the ABP Framework:
-
-* [Web Application Development Tutorial](https://abp.io/docs/latest/tutorials/book-store/part-1)
-* [Application Startup Template](https://abp.io/docs/latest/startup-templates/application/index)
+Projeyi çalıştırın: dotnet run
