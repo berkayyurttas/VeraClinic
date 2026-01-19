@@ -26,15 +26,15 @@ COPY . .
 WORKDIR "/src/src/VeraClinic.HttpApi.Host"
 RUN dotnet publish "VeraClinic.HttpApi.Host.csproj" -c Release -o /app/publish
 
+# --- KRİTİK DÜZELTME BAŞLANGICI ---
+# Sertifikayı publish klasörüne kopyalıyoruz ki 'final' aşamasında yollar karışmasın
+RUN cp openiddict.pfx /app/publish/
+# --- KRİTİK DÜZELTME BİTİŞİ ---
+
 FROM base AS final
 WORKDIR /app
-# Build katmanından yayınlanmış dosyaları alıyoruz
-COPY --from=build /app/publish .
 
-# --- HATA BURADAYDI, ŞÖYLE DÜZELTTİK ---
-# Sertifikayı 'build' aşamasındaki kaynak klasörden çekiyoruz. 
-# Çünkü 'final' katmanında 'src/' klasörü fiziksel olarak yoktur.
-COPY --from=build /src/VeraClinic.HttpApi.Host/openiddict.pfx .
-# ---------------------------------------
+# Yayınlanan dosyaları (PFX dahil) tek seferde çekiyoruz
+COPY --from=build /app/publish .
 
 ENTRYPOINT ["dotnet", "VeraClinic.HttpApi.Host.dll"]
