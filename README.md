@@ -1,4 +1,4 @@
-                                                                  🏥 VeraClinic - Akıllı Triyaj ve Klinik Yönetim Sistemi
+                                             🏥 VeraClinic - Akıllı Triyaj ve Klinik Yönetim Sistemi
 
 
 VeraClinic; acil servisler, klinikler ve poliklinikler için hastaların hayati bulgularına göre sınıflandırılmasını sağlayan, hız ve güvenliğin ön planda olduğu bir Akıllı Triyaj Sistemi'dir. Sistem, sağlık personeline hastaların aciliyet durumlarını anlık olarak takip etme ve doğru müdahale önceliği belirleme imkanı sunar.
