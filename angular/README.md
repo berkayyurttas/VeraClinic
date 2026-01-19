@@ -1,33 +1,61 @@
-# VeraClinic
+🚨 Triyaj Sınıflandırma Sistemi
+VeraClinic, uluslararası standartlara uygun olarak hastaları üç ana kategoride sınıflandırır:
 
-This is a startup project based on the ABP framework. For more information, visit <a href="https://abp.io/" target="_blank">abp.io</a>
+🔴 Kırmızı Kod (Acil): Hayati tehlikesi bulunan, saniyeler içinde müdahale edilmesi gereken kritik hastalar.
 
-## Development server
+🟡 Sarı Kod (Gözlem): Durumu kötüleşme riski bulunan, kısa süre içinde müdahale edilmesi gereken hastalar.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+🟢 Yeşil Kod (Ayaktan): Genel sağlık durumu stabil olan, poliklinik hizmeti alabilecek hastalar.
 
-## Code scaffolding
+🚀 Teknolojik Altyapı ve Mimari
+Proje, kurumsal seviyede performans ve sürdürülebilirlik için en güncel yazılım yığınını kullanır:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+⚙️ Backend (Sunucu Tarafı)
+.NET 10 (Preview): Microsoft'un en güncel framework'ü ile maksimum performans.
 
-## Build
+PostgreSQL: Güçlü, açık kaynaklı ilişkisel veritabanı yönetimi.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Redis: Yüksek performanslı veri önbellekleme (Caching) ve oturum yönetimi.
 
-## Running unit tests
+OpenIddict: Yüksek güvenlikli kimlik doğrulama (OAuth2/OpenID Connect).
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+ABP Framework: Modüler ve Domain-Driven Design (DDD) odaklı katmanlı mimari.
 
-## Running end-to-end tests
+🎨 Frontend (İstemci Tarafı)
+Angular: Dinamik ve modüler kullanıcı arayüzü yönetimi.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice.
+RxJS (Observables): Backend'den gelen hasta ve triyaj verilerinin asenkron akış yönetimi.
 
-## Further help
+Bootstrap & SCSS: Sağlık personeli için optimize edilmiş, mobil uyumlu panel tasarımı.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+📦 DevOps ve Otomasyon
+Docker: API, Angular, PostgreSQL ve Redis bileşenlerinin konteynerize edilmesi.
 
-## Remote Environment
+GitHub Actions: Tam otomatik CI/CD süreci (Build, Test, Push to Docker Hub).
 
-The application provides a remote environment for production. we use `dynamic-env.json` file to set the environment variables and configured web server's `getEnvConfig` endpoint by default.
+Multi-Stage Build: Üretim ortamı için optimize edilmiş hafif Docker imajları.
 
-See [Environment](https://abp.io/docs/latest/framework/ui/angular/environment) for more information.
+🏗️ Proje Katmanları (N-Layered)
+Domain Layer: İş kuralları ve triyaj algoritmalarının kalbi.
+
+Application Layer: DTO'lar ve iş mantığının API ile buluştuğu nokta.
+
+Infrastructure Layer: PostgreSQL bağlantıları, Redis entegrasyonu ve EF Core konfigürasyonları.
+
+API Host Layer: Uygulamanın dünyaya açılan kapısı.
+
+🛠️ Kurulum Rehberi
+Docker ile Hızlı Başlat
+Sistemi en güncel imajlarla ayağa kaldırmak için:
+
+Bash
+docker pull berkayyurttas/veraclinic-api:latest
+docker pull berkayyurttas/veraclinic-angular:latest
+Yerel Geliştirme Ortamı
+Depoyu klonlayın: git clone https://github.com/berkayyurttas/VeraClinic.git
+
+docker-compose.yml dosyasını kullanarak PostgreSQL ve Redis servislerini başlatın.
+
+Migrationları uygulayın: dotnet ef database update
+
+Projeyi çalıştırın: dotnet run
