@@ -16,10 +16,10 @@ COPY ["src/VeraClinic.Domain.Shared/VeraClinic.Domain.Shared.csproj", "src/VeraC
 COPY ["src/VeraClinic.EntityFrameworkCore/VeraClinic.EntityFrameworkCore.csproj", "src/VeraClinic.EntityFrameworkCore/"]
 COPY ["src/VeraClinic.HttpApi/VeraClinic.HttpApi.csproj", "src/VeraClinic.HttpApi/"]
 
-# Restore işlemi (Host projesi üzerinden)
+# Restore işlemi
 RUN dotnet restore "src/VeraClinic.HttpApi.Host/VeraClinic.HttpApi.Host.csproj"
 
-# Tüm kaynak kodları ve pfx sertifikasını içeri alıyoruz
+# Tüm kaynak kodları içeri alıyoruz
 COPY . .
 
 # Build ve Publish
@@ -28,9 +28,13 @@ RUN dotnet publish "VeraClinic.HttpApi.Host.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
+# Build katmanından yayınlanmış dosyaları alıyoruz
 COPY --from=build /app/publish .
 
-# Sertifikayı uygulamanın yanına yerleştiriyoruz
-COPY src/VeraClinic.HttpApi.Host/openiddict.pfx .
+# --- HATA BURADAYDI, ŞÖYLE DÜZELTTİK ---
+# Sertifikayı 'build' aşamasındaki kaynak klasörden çekiyoruz. 
+# Çünkü 'final' katmanında 'src/' klasörü fiziksel olarak yoktur.
+COPY --from=build /src/src/VeraClinic.HttpApi.Host/openiddict.pfx .
+# ---------------------------------------
 
 ENTRYPOINT ["dotnet", "VeraClinic.HttpApi.Host.dll"]
