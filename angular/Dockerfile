@@ -1,17 +1,24 @@
-# Stage 1: Build
-FROM node:20 AS build
+# 1. AŞAMA: Derleme (Build)
+FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm install --legacy-peer-deps
-COPY . .
-RUN npm run build --configuration=production
 
-# Stage 2: Serve with Nginx
+# Bağımlılıkları yükle
+COPY package.json package-lock.json ./
+RUN npm install --legacy-peer-deps
+
+# Proje dosyalarını kopyala ve build al
+COPY . .
+RUN npx ng build --configuration production
+
+# 2. AŞAMA: Yayın (Nginx)
 FROM nginx:alpine
-# ✅ Klasör yolunu wildcard (*) ile düzelttik, böylece isim fark etmeksizin dosyaları bulur
-COPY --from=build /app/dist/*/browser /usr/share/nginx/html
-# Eğer Angular sürümün 17 altındaysa yukarıdaki satırı şununla değiştir: 
-# COPY --from=build /app/dist/* /usr/share/nginx/html
+
+# Nginx ayarını kopyala
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# KRİTİK DÜZELTME: 
+# angular.json'daki base path ve browser klasörünü birleştirdik.
+COPY --from=builder /app/dist/VeraClinic/browser /usr/share/nginx/html
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

@@ -1,26 +1,22 @@
-import { Environment } from '@abp/ng.core';
-
-const baseUrl = 'http://localhost:4299';
-
 export const environment = {
   production: false,
   application: {
-    baseUrl: baseUrl + '/',
+    baseUrl: 'http://localhost:4299/',
     name: 'VeraClinic',
     logoUrl: '',
   },
   oAuthConfig: {
-    issuer: 'https://localhost:44399/',  // Backend loglarında HTTPS olduğu için burası HTTPS olmalı
-    redirectUri: baseUrl + '/',
+    issuer: 'http://localhost:44398/', // Burası 44398 ve http olmalı
+    redirectUri: 'http://localhost:4299/',
     clientId: 'VeraClinic_App',
     responseType: 'code',
     scope: 'offline_access VeraClinic',
-    requireHttps: true,                 // Issuer HTTPS olduğu için burası true olmalı
+    showDebugInformation: true,
   },
   apis: {
     default: {
-      url: 'https://localhost:44399',    // API istekleri HTTPS portuna gitmeli
+      url: 'http://localhost:44398', // Burası 44398 ve http olmalı
       rootNamespace: 'VeraClinic',
     },
   },
-} as Environment;
+};

@@ -12,8 +12,8 @@ using Volo.Abp.Uow;
 
 namespace VeraClinic.OpenIddict;
 
-/* Creates initial data that is needed to property run the application
- * and make client-to-server communication possible.
+/* Uygulamanın düzgün çalışması ve istemci-sunucu iletişiminin 
+ * mümkün olması için gereken başlangıç verilerini oluşturur.
  */
 public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, IDataSeedContributor, ITransientDependency
 {
@@ -57,18 +57,26 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
 
         var configurationSection = Configuration.GetSection("OpenIddict:Applications");
 
-
-        //Console Test / Angular Client
+        // Console Test / Angular Client
         var consoleAndAngularClientId = configurationSection["VeraClinic_App:ClientId"];
         if (!consoleAndAngularClientId.IsNullOrWhiteSpace())
         {
-            var consoleAndAngularClientRootUrl = configurationSection["VeraClinic_App:RootUrl"]?.TrimEnd('/');
+            // Root URL'yi alıyoruz ve sonundaki çizgiyi temizliyoruz
+            var rootUrl = configurationSection["VeraClinic_App:RootUrl"]?.TrimEnd('/');
+            
+            // HEM çizgili HEM çizgisiz versiyonu listeye ekliyoruz (Redirect hatasını çözen kısım)
+            var redirectUris = new List<string> 
+            { 
+                rootUrl, 
+                rootUrl + "/" 
+            };
+
             await CreateOrUpdateApplicationAsync(
                 applicationType: OpenIddictConstants.ApplicationTypes.Web,
                 name: consoleAndAngularClientId!,
                 type: OpenIddictConstants.ClientTypes.Public,
                 consentType: OpenIddictConstants.ConsentTypes.Implicit,
-                displayName: "Console Test / Angular Application",
+                displayName: "VeraClinic Web Application",
                 secret: null,
                 grantTypes: new List<string> {
                     OpenIddictConstants.GrantTypes.AuthorizationCode,
@@ -79,18 +87,12 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                     "Impersonation"
                 },
                 scopes: commonScopes,
-                redirectUris: new List<string> { consoleAndAngularClientRootUrl },
-                postLogoutRedirectUris: new List<string> { consoleAndAngularClientRootUrl },
-                clientUri: consoleAndAngularClientRootUrl,
+                redirectUris: redirectUris,
+                postLogoutRedirectUris: redirectUris,
+                clientUri: rootUrl,
                 logoUri: "/images/clients/angular.svg"
             );
         }
-
-        
-        
-
-
-
 
         // Swagger Client
         var swaggerClientId = configurationSection["VeraClinic_Swagger:ClientId"];
@@ -112,7 +114,5 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                 logoUri: "/images/clients/swagger.svg"
             );
         }
-
-
     }
 }

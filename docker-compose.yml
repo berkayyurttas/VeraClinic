@@ -1,7 +1,8 @@
-version: '3.8'
+version: '3.4'
+
 services:
-  veraclinic-db:
-    image: postgres:17-alpine
+  veraclinic_db:
+    image: postgres:17
     container_name: veraclinic_db
     environment:
       - POSTGRES_USER=root
@@ -9,11 +10,55 @@ services:
       - POSTGRES_DB=VeraClinic
     ports:
       - "5488:5432"
-    volumes:
-      - ./.vdata/db:/var/lib/postgresql/data
 
-  veraclinic-redis:
+  veraclinic_redis:
     image: redis:alpine
     container_name: veraclinic_redis
     ports:
-      - "6399:6379"
+      - "6379:6379"
+
+  veraclinic_migrator:
+    profiles: ["tools"] # <-- Bu satır sihirli dokunuş
+    build:
+      context: .
+      dockerfile: src/VeraClinic.DbMigrator/Dockerfile
+    container_name: veraclinic_migrator
+    depends_on:
+      - veraclinic_db
+    environment:
+      - ConnectionStrings__Default=Host=veraclinic_db;Port=5432;Database=VeraClinic;Username=root;Password=password;
+
+  veraclinic_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: veraclinic_api
+    depends_on:
+      veraclinic_db:
+        condition: service_started
+      veraclinic_redis:
+        condition: service_started
+      # DİKKAT: Migrator bağımlılığını kaldırdık! 
+      # Artık her açılışta veritabanını bozmayacak.
+    ports:
+      - "44398:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - DOTNET_RUNNING_IN_CONTAINER=true
+      - ConnectionStrings__Default=Host=veraclinic_db;Port=5432;Database=VeraClinic;Username=root;Password=password;
+      - Redis__Configuration=veraclinic_redis:6379
+      - App__SelfUrl=http://localhost:44398
+      - App__AngularUrl=http://localhost:4299
+      - AuthServer__Authority=http://localhost:44398
+      - AuthServer__RequireHttpsMetadata=false
+
+  veraclinic_angular:
+    build:
+      context: ./angular
+      dockerfile: Dockerfile
+    container_name: veraclinic_angular
+    ports:
+      - "4299:80"
+    depends_on:
+      - veraclinic_api

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -10,21 +9,17 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Server.AspNetCore;
 using VeraClinic.EntityFrameworkCore;
 using VeraClinic.MultiTenancy;
-using VeraClinic.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Volo.Abp;
 using Volo.Abp.Studio;
-using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
 using Volo.Abp.AspNetCore.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
-using Volo.Abp.Localization;
 using Volo.Abp.Modularity;
 using Volo.Abp.UI.Navigation.Urls;
 using Volo.Abp.VirtualFileSystem;
@@ -32,9 +27,7 @@ using Volo.Abp.AspNetCore.Mvc.UI.Bundling;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.LeptonXLite.Bundling;
-using Microsoft.AspNetCore.Hosting;
 using Volo.Abp.AspNetCore.Serilog;
-using Volo.Abp.Identity;
 using Volo.Abp.OpenIddict;
 using Volo.Abp.Swashbuckle;
 using Volo.Abp.Studio.Client.AspNetCore;
@@ -75,6 +68,10 @@ public class VeraClinicHttpApiHostModule : AbpModule
         {
             serverBuilder.AddDevelopmentEncryptionCertificate();
             serverBuilder.AddDevelopmentSigningCertificate();
+            
+            // ✅ HTTP (44398) üzerinden gelen istekleri kabul etmesi için eklendi
+            serverBuilder.UseAspNetCore().DisableTransportSecurityRequirement(); 
+            serverBuilder.DisableAccessTokenEncryption();
 
             if (!hostingEnvironment.IsDevelopment())
             {
@@ -82,13 +79,10 @@ public class VeraClinicHttpApiHostModule : AbpModule
             }
         });
 
-        if (!hostingEnvironment.IsDevelopment())
+        PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
         {
-            PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
-            {
-                options.AddDevelopmentEncryptionAndSigningCertificate = true;
-            });
-        }
+            options.AddDevelopmentEncryptionAndSigningCertificate = true;
+        });
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
@@ -96,55 +90,46 @@ public class VeraClinicHttpApiHostModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
 
-        // 📝 NOT: Saat dilimi ayarlarını sildik çünkü Angular tarafında çözdük.
-        // Bu sayede "CS0234: Timing does not exist" hatasından kurtuluyoruz.
-
         if (!configuration.GetValue<bool>("App:DisablePII"))
         {
             Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
-            Microsoft.IdentityModel.Logging.IdentityModelEventSource.LogCompleteSecurityArtifact = true;
         }
 
-        if (!configuration.GetValue<bool>("AuthServer:RequireHttpsMetadata"))
+        Configure<ForwardedHeadersOptions>(options =>
         {
-            Configure<OpenIddictServerAspNetCoreOptions>(options =>
-            {
-                options.DisableTransportSecurityRequirement = true;
-            });
-            
-            Configure<ForwardedHeadersOptions>(options =>
-            {
-                options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
-                options.KnownIPNetworks.Clear();
-                options.KnownProxies.Clear();
-            });
-        }
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        });
 
         ConfigureStudio(hostingEnvironment);
         ConfigureAuthentication(context);
         ConfigureUrls(configuration);
         ConfigureBundles();
         ConfigureConventionalControllers();
-        ConfigureHealthChecks(context);
-        ConfigureSwagger(context, configuration);
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
+        ConfigureSwagger(context, configuration);
+        
+        // ✅ HTTP üzerinden çalışırken güvenliği esneten servis ayarı
+        Configure<OpenIddictServerAspNetCoreOptions>(options =>
+        {
+            options.DisableTransportSecurityRequirement = true;
+        });
+
+        context.Services.AddHealthChecks();
     }
 
     private void ConfigureStudio(IHostEnvironment hostingEnvironment)
     {
         if (hostingEnvironment.IsProduction())
         {
-            Configure<AbpStudioClientOptions>(options =>
-            {
-                options.IsLinkEnabled = false;
-            });
+            Configure<AbpStudioClientOptions>(options => { options.IsLinkEnabled = false; });
         }
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context)
     {
-        context.Services.ForwardIdentityAuthenticationForBearer(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+        context.Services.AddAuthentication();
+        
         context.Services.Configure<AbpClaimsPrincipalFactoryOptions>(options =>
         {
             options.IsDynamicClaimsEnabled = true;
@@ -157,7 +142,6 @@ public class VeraClinicHttpApiHostModule : AbpModule
         {
             options.Applications["MVC"].RootUrl = configuration["App:SelfUrl"];
             options.Applications["Angular"].RootUrl = configuration["App:AngularUrl"];
-            options.Applications["Angular"].Urls[AccountUrlNames.PasswordReset] = "account/reset-password";
             options.RedirectAllowedUrls.AddRange(configuration["App:RedirectAllowedUrls"]?.Split(',') ?? Array.Empty<string>());
         });
     }
@@ -166,38 +150,27 @@ public class VeraClinicHttpApiHostModule : AbpModule
     {
         Configure<AbpBundlingOptions>(options =>
         {
-            options.StyleBundles.Configure(
-                LeptonXLiteThemeBundles.Styles.Global,
-                bundle =>
-                {
-                    bundle.AddFiles("/global-styles.css");
-                }
-            );
-
-            options.ScriptBundles.Configure(
-                LeptonXLiteThemeBundles.Scripts.Global,
-                bundle =>
-                {
-                    bundle.AddFiles("/global-scripts.js");
-                }
-            );
+            options.StyleBundles.Configure(LeptonXLiteThemeBundles.Styles.Global, bundle => { bundle.AddFiles("/global-styles.css"); });
+            options.ScriptBundles.Configure(LeptonXLiteThemeBundles.Scripts.Global, bundle => { bundle.AddFiles("/global-scripts.js"); });
         });
     }
 
     private void ConfigureVirtualFileSystem(ServiceConfigurationContext context)
     {
         var hostingEnvironment = context.Services.GetHostingEnvironment();
+        bool isRunningInContainer = string.Equals(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), "true", StringComparison.OrdinalIgnoreCase);
 
-        if (hostingEnvironment.IsDevelopment())
+        Configure<AbpVirtualFileSystemOptions>(options =>
         {
-            Configure<AbpVirtualFileSystemOptions>(options =>
+            options.FileSets.AddEmbedded<VeraClinicHttpApiHostModule>();
+            if (hostingEnvironment.IsDevelopment() && !isRunningInContainer)
             {
                 options.FileSets.ReplaceEmbeddedByPhysical<VeraClinicDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}VeraClinic.Domain.Shared"));
                 options.FileSets.ReplaceEmbeddedByPhysical<VeraClinicDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}VeraClinic.Domain"));
                 options.FileSets.ReplaceEmbeddedByPhysical<VeraClinicApplicationContractsModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}VeraClinic.Application.Contracts"));
                 options.FileSets.ReplaceEmbeddedByPhysical<VeraClinicApplicationModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}VeraClinic.Application"));
-            });
-        }
+            }
+        });
     }
 
     private void ConfigureConventionalControllers()
@@ -230,12 +203,7 @@ public class VeraClinicHttpApiHostModule : AbpModule
             options.AddDefaultPolicy(builder =>
             {
                 builder
-                    .WithOrigins(
-                        configuration["App:CorsOrigins"]?
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                            .Select(o => o.Trim().RemovePostFix("/"))
-                            .ToArray() ?? Array.Empty<string>()
-                    )
+                    .WithOrigins(configuration["App:CorsOrigins"]?.Split(",", StringSplitOptions.RemoveEmptyEntries).Select(o => o.Trim().RemovePostFix("/")).ToArray() ?? Array.Empty<string>())
                     .WithAbpExposedHeaders()
                     .SetIsOriginAllowedToAllowWildcardSubdomains()
                     .AllowAnyHeader()
@@ -245,35 +213,22 @@ public class VeraClinicHttpApiHostModule : AbpModule
         });
     }
 
-    private void ConfigureHealthChecks(ServiceConfigurationContext context)
-    {
-        context.Services.AddVeraClinicHealthChecks();
-    }
-
-
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
         var app = context.GetApplicationBuilder();
         var env = context.GetEnvironment();
 
         app.UseForwardedHeaders();
-
+        app.UseAbpRequestLocalization();
+        
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
         }
 
-        app.UseAbpRequestLocalization();
-
-        if (!env.IsDevelopment())
-        {
-            app.UseErrorPage();
-        }
-
+        app.UseStaticFiles();
         app.UseRouting();
-        app.MapAbpStaticAssets();
         app.UseAbpStudioLink();
-        app.UseAbpSecurityHeaders();
         app.UseCors();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
@@ -286,17 +241,22 @@ public class VeraClinicHttpApiHostModule : AbpModule
         app.UseUnitOfWork();
         app.UseDynamicClaims();
         app.UseAuthorization();
-
         app.UseSwagger();
         app.UseAbpSwaggerUI(options =>
         {
             options.SwaggerEndpoint("/swagger/v1/swagger.json", "VeraClinic API");
-
             var configuration = context.ServiceProvider.GetRequiredService<IConfiguration>();
+            
+            // ✅ Authorize penceresini dolduran kritik ayarlar
             options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
+            options.OAuthScopes("VeraClinic");
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
-        app.UseConfiguredEndpoints();
+        
+        app.UseConfiguredEndpoints(endpoints =>
+        {
+            endpoints.MapHealthChecks("/health-status");
+        });
     }
 }
